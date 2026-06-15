@@ -1,0 +1,157 @@
+/* Component-specific styles */
+
+/* Shopping Cart */
+.shopping-cart {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.cart-item button {
+  background-color: #dc3545;
+}
+
+.cart-item button:hover {
+  background-color: #c82333;
+}
+
+.promo-section {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.promo-section input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.checkout-btn {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.2rem;
+  background-color: #28a745;
+  margin-top: 1rem;
+}
+
+.checkout-btn:hover {
+  background-color: #218838;
+}
+
+/* Dashboard */
+.dashboard {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.dashboard .stats {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #e3f2fd;
+  border-radius: 8px;
+}
+
+.dashboard .notifications {
+  margin-top: 2rem;
+}
+
+.dashboard .notification {
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+}
+
+/* Profile */
+.profile {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.profile-info {
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.profile-info p {
+  margin: 0.5rem 0;
+}
+
+.warning {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.notes-section {
+  margin-top: 2rem;
+}
+
+.notes-section textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Search */
+.search-bar .results {
+  margin-top: 2rem;
+}
+
+.search-bar .result-item {
+  padding: 1rem;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.search-bar .result-item h4 {
+  margin-bottom: 0.5rem;
+}
+
+.search-history {
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+/* Home */
+.home {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.home h1 {
+  margin-bottom: 1rem;
+}
+
+/* Profile - Note: duplicate rule from above */
+.profile {
+  padding: 2rem;
+}
+
+/* Env section */
+.env-section {
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: #e2e3e5;
+  border: 1px solid #d6d8db;
+  border-radius: 4px;
+}

