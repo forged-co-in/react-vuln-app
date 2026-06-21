@@ -417,10 +417,28 @@ body {
   }
 }
 /* =========================================================================
-   🔝 FLOATING INTERACTIVE SCROLL ELEVATION TRANSITIONS
+   🔝 HUMAN-ENGINEERED MINIMALIST CIRCLE SCROLL ACTION ACTION BUTTON
    ========================================================================= */
-.scroll-top-btn:hover {
-  background-color: #1d4ed8 !important;
+.scroll-top-circle-btn {
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50% !important; /* Forces absolute circular radius metrics */
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0;
+  margin: 0;
+}
+
+.scroll-top-circle-btn:hover {
+  background-color: #0f172a; /* Switches to crisp slate on interaction focus */
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3) !important;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2);
 }
