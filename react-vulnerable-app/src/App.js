@@ -38,7 +38,15 @@ function App() {
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
   const [isConfigLoading, setIsConfigLoading] = useState(true);
+  const [premiumAlert, setPremiumAlert] = useState({ show: false, message: "", type: "success" });
   const navigate = useNavigate();
+
+  const triggerAlert = (message, type = "success") => {
+    setPremiumAlert({ show: true, message, type });
+    setTimeout(() => {
+      setPremiumAlert({ show: false, message: "", type: "success" });
+    }, 3500);
+  };
 
   useEffect(() => {
     const savedUser = sessionStorage.getItem("currentUser");
@@ -74,17 +82,19 @@ function App() {
   function handleLogin(userData) {
     setUser(userData);
     sessionStorage.setItem("currentUser", JSON.stringify(userData));
+    // ✅ IMAGE 2 FIX: Removed triggerAlert from here so the top-side notification toast does not duplicate the login SweetAlert2 modal.
   }
 
   function handleLogout() {
     setUser(null);
     sessionStorage.removeItem("currentUser");
+    triggerAlert("Session terminated. Logged out successfully.", "info");
     navigate("/login");
   }
 
   function addToCart(item) {
     if (!user || !user.name) {
-      alert("🔒 Authentication Required to buy products!");
+      triggerAlert("🔒 Authentication Required! Please sign in first.", "error");
       navigate("/login");
       return;
     }
@@ -96,6 +106,8 @@ function App() {
       syncUserCartToServer(user.name.toLowerCase(), updatedCart);
       return updatedCart;
     });
+    // ✅ IMAGE 1 FIX: Kept the top-side notification toast alert banner active here.
+    triggerAlert(`🎉 Success! ${item.name} has been added to your shopping basket.`, "success");
   }
 
   function updateQuantity(id, newQuantity) {
@@ -114,14 +126,11 @@ function App() {
       syncUserCartToServer(user.name.toLowerCase(), updatedCart);
       return updatedCart;
     });
+    triggerAlert("Item removed from your basket.", "info");
   }
 
   if (isConfigLoading) {
-    return (
-      <div style={{ padding: "100px 30px", textAlign: "center" }}>
-        <h3 style={{ color: "#64748b" }}>Initializing professional security layers...</h3>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -129,7 +138,17 @@ function App() {
       <ErrorBoundary>
         <div className="app-layout-wrapper">
           
-          {/* ✅ THE COMPLETED CUSTOM NAVBAR WITH ICON LOGIC & REMOVED DASHBOARD */}
+          {premiumAlert.show && (
+            <div className={`premium-toast-alert alert-type-${premiumAlert.type}`}>
+              <div className="toast-content-wrapper">
+                <span className="toast-icon">
+                  {premiumAlert.type === "success" ? "✓" : "ℹ"}
+                </span>
+                <p className="toast-text">{premiumAlert.message}</p>
+              </div>
+            </div>
+          )}
+          
           <nav className="navbar-container">
             <Link to="/" className="nav-brand">
               Forged <span>E-Commerce</span>
@@ -141,8 +160,7 @@ function App() {
               <Link to="/search" className="nav-item-link">Search</Link>
               
               <Link to="/cart" className="nav-item-link cart-link-badge">
-                {/* Shopping Basket Vector SVG Inline Icon Element */}
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <circle cx="9" cy="21" r="1"></circle>
                   <circle cx="20" cy="21" r="1"></circle>
                   <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
@@ -152,7 +170,13 @@ function App() {
 
               {user ? (
                 <>
-                  <Link to={`/profile/${user.id || "me"}`} className="nav-item-link">Profile</Link>
+                  <Link to={`/profile/${user.id || "me"}`} className="nav-item-link profile-link-badge">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    Profile
+                  </Link>
                   
                   {user.role === "admin" ? (
                     <Link to="/admin?tab=orders" className="nav-item-link">Orders</Link>
@@ -172,12 +196,11 @@ function App() {
                   <button onClick={handleLogout} className="logout-btn-nav">Logout</button>
                 </>
               ) : (
-                <Link to="/login" className="nav-item-link" style={{ color: "#ffffff", fontWeight: "600" }}>Login</Link>
+                <Link to="/login" className="nav-item-link" style={{ fontWeight: "600" }}>Login</Link>
               )}
             </div>
           </nav>
 
-          {/* Core Content Pipeline Mount Ports */}
           <main className="main-content-viewport">
             <Routes>
               <Route path="/" element={<Home />} />
@@ -185,14 +208,13 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/profile/:id" element={<UserProfile />} />
               <Route path="/products" element={<ProductList addToCart={addToCart} />} />
-              <Route path="/cart" element={<ShoppingCart cartItems={cart} updateQuantity={updateQuantity} removeFromCart={removeFromCart} />} />
+              <Route path="/cart" element={<ShoppingCart cartItems={cart} updateQuantity={updateQuantity} removeFromCart={removeFromCart} triggerGlobalAlert={triggerAlert} />} />
               <Route path="/search" element={<SearchBar addToCart={addToCart} />} />
               <Route path="/orders/:username" element={<OrderHistory user={user} />} />
               <Route path="/admin" element={<ProtectedAdminRoute><AdminPanel user={user} /></ProtectedAdminRoute>} />
             </Routes>
           </main>
 
-          {/* ✅ THE HIGH QUALITY CORPORATE ANIMATED ENTERPRISE FOOTER COMPONENT */}
           <footer className="enterprise-footer">
             <div className="footer-top-grid">
               <div className="footer-info-col">
@@ -218,7 +240,7 @@ function App() {
             </div>
             <div className="footer-bottom-bar">
               <p>&copy; {new Date().getFullYear()} Forged E-Commerce Platform. All operational execution vectors verified.</p>
-              <p style={{ color: "#64748b" }}>Integrated Environment: Production Node</p>
+              <p style={{ color: "#94a3b8" }}>Integrated Environment: Production Node</p>
             </div>
           </footer>
 
@@ -229,10 +251,7 @@ function App() {
   );
 }
 
-// ✅ THE HIGH QUALITY ANIMATED BRANDED HOME VIEW COMPONENT
 function Home() {
-  const { state = { user: null } } = useAppContext();
-
   return (
     <div className="home-hero-section">
       <div className="hero-pill-badge">
@@ -241,40 +260,15 @@ function Home() {
         </svg>
         Next-Gen Retail Engineering Architecture
       </div>
-      
       <h1 className="hero-main-title">
         Experience the Next Era of <em>Forged E-Commerce</em> Platforms
       </h1>
-      
       <p className="hero-sub-description">
-        Welcome {state?.user?.name ? `back, ${state.user.name}` : "Guest Operator"}! Discover premium inventory assets backed by instantaneous transaction workflows and military-grade encryption pipelines.
+        Discover premium inventory assets backed by instantaneous transaction workflows and military-grade encryption pipelines.
       </p>
-      
       <div className="hero-cta-group">
         <Link to="/products" className="btn-primary-action">Explore Catalog</Link>
         <Link to="/search" className="btn-secondary-action">Search Database</Link>
-      </div>
-
-      {/* Branded Showcase Cards Grid */}
-      <div className="home-features-showcase">
-        <div className="feature-showcase-card">
-          <div className="feature-child-wrapper">
-            <div className="feature-card-icon">
-              <svg width="20" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-            </div>
-            <h3 className="feature-card-title">Cryptographic Logs</h3>
-            <p className="feature-card-text">Every single state change and user session token remains locked inside strict validation scopes.</p>
-          </div>
-        </div>
-        <div className="feature-showcase-card">
-          <div className="feature-child-wrapper">
-            <div className="feature-card-icon">
-              <svg width="20" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-            </div>
-            <h3 className="feature-card-title">Dynamic Sync Streams</h3>
-            <p className="feature-card-text">Real-time Socket.io handshakes continuously refresh catalog datasets across your active viewport layers.</p>
-          </div>
-        </div>
       </div>
     </div>
   );

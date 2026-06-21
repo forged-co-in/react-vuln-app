@@ -1,119 +1,111 @@
 import React, { useState, useEffect } from 'react';
-import { fetchLiveProducts } from '../utils/api'; // Importing live api route connection hook
-
-const FREE_SHIPPING_THRESHOLD = 50;
+import { fetchLiveProducts } from '../utils/api';
 
 function ProductList({ addToCart }) {
-  const [products, setProducts] = useState([]); // Controlled local state array instead of static array
+  const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("name");
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Read active product collection states from backend server on render lifecycle
   useEffect(() => {
     fetchLiveProducts()
       .then(data => {
-        if (Array.isArray(data)) {
-          setProducts(data);
-        }
+        if (Array.isArray(data)) setProducts(data);
+        setIsLoading(false);
       })
-      .catch(err => console.error("Error reading database catalog items:", err))
-      .finally(() => setLoading(false));
+      .catch(err => {
+        console.error(err);
+        setIsLoading(false);
+      });
   }, []);
 
-  // Filter products based on search
-  const filtered = products.filter(p => 
-    p.name && p.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // ✅ IMAGE 1 FIX: Removed SweetAlert2 from here so only the top-side notification banner displays.
+  const handleItemPurchaseAction = (product) => {
+    addToCart(product);
+  };
 
-  // Sort products based on dropdown selection
-  if (sortBy === "price") {
-    filtered.sort((a, b) => a.price - b.price);
-  } else if (sortBy === "name") {
-    filtered.sort((a, b) => a.name.localeCompare(b.name));
-  } else if (sortBy === "price-desc") {
-    filtered.sort((a, b) => b.price - a.price);
-  }
+  const filteredProducts = products
+    .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .sort((a, b) => {
+      if (sortBy === "price") return a.price - b.price;
+      return a.name.localeCompare(b.name);
+    });
 
-  if (loading) {
-    return <p style={{ padding: "30px", textAlign: "center" }}>Loading storefront catalog products...</p>;
+  if (isLoading) {
+    return <div className="loading-placeholder">Querying live store catalog database...</div>;
   }
 
   return (
-    <div className="product-list" style={{ padding: "30px", maxWidth: "1200px", margin: "auto" }}>
-      <h2>Products Catalog Storefront ({filtered.length} live items)</h2>
-
-      {/* Control Filter Toolbar */}
-      <div style={{ display: "flex", gap: "15px", marginBottom: "20px" }}>
-        <input
-          type="text"
-          placeholder="Search products..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{ padding: "8px", width: "100%", maxWidth: "300px" }}
+    <div className="products-view-container" style={{ padding: "40px 4rem", maxWidth: "1200px", margin: "0 auto" }}>
+      <h2 style={{ marginBottom: "20px", fontSize: "1.75rem", fontWeight: "700", letterSpacing: "-0.02em" }}>
+        Products Catalog Storefront ({filteredProducts.length} live items)
+      </h2>
+      
+      <div style={{ display: "flex", gap: "12px", marginBottom: "30px" }}>
+        <input 
+          type="text" 
+          placeholder="Search products..." 
+          value={searchTerm} 
+          onChange={e => setSearchTerm(e.target.value)}
+          style={{ padding: "0.6rem 1rem", borderRadius: "4px", border: "1px solid #e9ecef", width: "280px", fontSize: "0.9rem" }}
         />
-
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={{ padding: "8px" }}>
-          <option value="name">Name</option>
-          <option value="price">Price: Low to High</option>
-          <option value="price-desc">Price: High to Low</option>
+        <select 
+          value={sortBy} 
+          onChange={e => setSortBy(e.target.value)}
+          style={{ padding: "0.6rem 1rem", borderRadius: "4px", border: "1px solid #e9ecef", background: "#ffffff", fontSize: "0.9rem" }}
+        >
+          <option value="name">Sort by Name</option>
+          <option value="price">Sort by Price</option>
         </select>
       </div>
 
-      {/* Main Grid View */}
-      {filtered.length === 0 ? (
-        <p style={{ color: "#666" }}>No items match your search or inventory is completely empty right now.</p>
-      ) : (
-        <div className="products-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "20px" }}>
-          {filtered.map(product => (
-            <div className="product-card" key={product.id} style={{ border: "1px solid #ddd", padding: "20px", borderRadius: "8px", backgroundColor: "#fff", display: "flex", flexDirection: "column", justifyContent: "between" }}>
-              
-              {/* =========================================================================
-                  🌄 NEW: PRODUCT IMAGE RENDERING CONTAINER WITH FALLBACK PLACEHOLDER BOX
-                  ========================================================================= */}
-              <div style={{ width: "100%", height: "180px", backgroundColor: "#f0f2f5", borderRadius: "6px", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "15px", border: "1px solid #eaeaea" }}>
-                {product.image ? (
-                  <img 
-                    src={product.image} 
-                    alt={product.name} 
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }} 
-                  />
-                ) : (
-                  <div style={{ color: "#999", fontSize: "14px", textAlign: "center", padding: "10px" }}>
-                    📷 No Image Available
-                  </div>
-                )}
+      <div className="products-grid-system" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "2rem" }}>
+        {filteredProducts.map(product => {
+          const isOutOfStock = product.stock <= 0;
+          return (
+            <div key={product.id} className="feature-showcase-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%" }}>
+              <div>
+                <div style={{ width: "100%", height: "200px", background: "#f8f9fa", borderRadius: "4px", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.25rem", border: "1px solid #e9ecef" }}>
+                  {product.image ? (
+                    <img src={product.image} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    <span style={{ color: "#94a3b8", fontSize: "0.85rem" }}>📷 Image Unavailable</span>
+                  )}
+                </div>
+                <h3 style={{ fontSize: "1.15rem", fontWeight: "600", marginBottom: "4px", textTransform: "capitalize" }}>{product.name}</h3>
+                <p style={{ color: "#475569", fontSize: "0.875rem", marginBottom: "1rem" }}>{product.description || "No description provided."}</p>
               </div>
-
-              <h3 style={{ marginTop: "0", marginBottom: "8px", fontSize: "18px" }}>{product.name}</h3>
-              <p style={{ color: "#666", fontSize: "14px", flexGrow: 1, marginBottom: "12px" }}>{product.description}</p>
-              <p style={{ fontWeight: "bold", margin: "0 0 4px 0", fontSize: "16px" }}>Price: ${product.price}</p>
               
-              <p style={{ fontSize: "13px", color: product.stock > 0 ? "green" : "red", margin: "0 0 15px 0" }}>
-                {product.stock > 0 ? `In Stock: ${product.stock} units` : "Out of Stock"}
-              </p>
-
-              <button 
-                onClick={() => addToCart(product)}
-                disabled={product.stock <= 0}
-                style={{ 
-                  width: "100%", 
-                  padding: "10px", 
-                  background: product.stock > 0 ? "#007bff" : "#ccc", 
-                  color: "#fff", 
-                  border: "none", 
-                  borderRadius: "4px", 
-                  fontWeight: "bold",
-                  cursor: product.stock > 0 ? "pointer" : "not-allowed",
-                  marginTop: "auto"
-                }}
-              >
-                {product.stock > 0 ? "Add to Cart" : "Unavailable"}
-              </button>
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
+                  <span style={{ fontWeight: "700", color: "#0f172a" }}>Price: ${parseFloat(product.price).toFixed(2)}</span>
+                  <span style={{ fontSize: "0.8rem", fontWeight: "600", color: isOutOfStock ? "#dc2626" : "#16a34a" }}>
+                    {isOutOfStock ? "Out of Stock" : `In Stock: ${product.stock} units`}
+                  </span>
+                </div>
+                
+                <button 
+                  onClick={() => handleItemPurchaseAction(product)}
+                  disabled={isOutOfStock}
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    background: isOutOfStock ? "#e9ecef" : "#2563eb",
+                    color: isOutOfStock ? "#94a3b8" : "#ffffff",
+                    border: "none",
+                    borderRadius: "4px",
+                    fontWeight: "600",
+                    cursor: isOutOfStock ? "not-allowed" : "pointer",
+                    transition: "all 0.2s"
+                  }}
+                >
+                  {isOutOfStock ? "Unavailable" : "Add to Cart"}
+                </button>
+              </div>
             </div>
-          ))}
-        </div>
-      )}
+          );
+        })}
+      </div>
     </div>
   );
 }
