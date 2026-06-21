@@ -352,3 +352,67 @@ body {
   font-size: 0.75rem;
   color: var(--text-dark);
 }
+
+/* =========================================================================
+   🛡️ HUMAN-CODED HIGH-END ALERT NOTIFICATION POPUPS & TEXT CONFIG
+   ========================================================================= */
+.premium-toast-alert {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  background-color: #ffffff;
+  color: #0f172a;
+  padding: 1rem 1.5rem;
+  border-radius: 6px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+  z-index: 9999;
+  border-left: 4px solid var(--brand-blue);
+  animation: slideInLeftToast 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.premium-toast-alert.alert-type-error {
+  border-left-color: #ef4444;
+}
+
+.premium-toast-alert.alert-type-info {
+  border-left-color: #64748b;
+}
+
+.toast-content-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toast-icon {
+  font-weight: 700;
+  color: inherit;
+}
+
+.toast-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* ✅ TASK 4 SPIN FIX: Completely hides native up/down number input spin wheels */
+.clean-core-quantity-input::-webkit-outer-spin-button,
+.clean-core-quantity-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.clean-core-quantity-input {
+  -moz-appearance: textfield;
+}
+
+@keyframes slideInLeftToast {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
