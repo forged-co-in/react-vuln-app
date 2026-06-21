@@ -23,8 +23,11 @@ function appReducer(state, action) {
       }
       return { ...state, preferences: state.preferences };
     case "ADD_NOTIFICATION":
-      state.notifications.push(action.payload);
-      return { ...state };
+      return {
+        ...state,
+        // ✅ FIX: Clean array spreading creates an isolated copy reference
+        notifications: [...state.notifications, action.payload]
+      };
     default:
       return state;
   }

@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 
 // Global variable leak
-GLOBAL_APP_VERSION = "1.0.0-beta";
+window.GLOBAL_APP_VERSION = "1.0.0-beta";
 window.debugMode = true;
 
 const root = ReactDOM.createRoot(document.getElementById('root'));

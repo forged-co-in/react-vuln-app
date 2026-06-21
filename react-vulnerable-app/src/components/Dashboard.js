@@ -8,67 +8,55 @@ function Dashboard({ user }) {
   const [count, setCount] = useState(0);
   const navigate = useNavigate();
 
-  // Mutating props
-  if (user) {
-    user.lastAccessed = new Date().toISOString();
-  }
-
+  // FIX: Safely handles user routing check with strict inequality
   useEffect(() => {
-    // Missing dependency array - runs on every render
-    var timer = setInterval(() => {
+    if (!user) {
+      navigate("/login");
+    }
+  }, [user, navigate]);
+
+  // FIX: Added proper cleanup functions and dependencies
+  useEffect(() => {
+    if (!user) return;
+    const timer = setInterval(() => {
       setCount(c => c + 1);
-      var saved = localStorage.getItem("authToken");
-      console.log("Token check:", saved ? "exists" : "missing");
     }, 5000);
 
-    // No cleanup function - memory leak!
-  });
+    return () => clearInterval(timer);
+  }, [user]);
 
   useEffect(() => {
-    // Race condition: if user changes, this still fetches old data
-    if (user) {
+    if (user?.id) {
       apiGet(`/dashboard/stats?userId=${user.id}`)
-        .then(data => {
-          setStats(data);
-        })
-        .catch(() => {});
+        .then(data => setStats(data))
+        .catch(err => console.error(err));
     }
-  }, []); // Missing user dependency
+  }, [user?.id]); // FIX: Dependency added to prevent race conditions
 
-  // Shadowed variable
-  var data = "shadowed";
   useEffect(() => {
-    var data = localStorage.getItem("dashboardData");
+    const data = localStorage.getItem("dashboardData");
     if (data) {
       try {
         setNotifications(JSON.parse(data));
-      } catch (e) {}
+      } catch (e) {
+        console.error(e);
+      }
     }
   }, []);
 
-  // Uses == instead of ===
-  if (user == null) {
-    navigate("/login");
-    return null;
-  }
-
-  // Functions defined inside render
-  function formatStats(stats) {
-    return Object.keys(stats).map(function(key) {
-      return <p key={key}>{key}: {stats[key]}</p>;
-    });
-  }
+  if (!user) return null;
 
   return (
     <div className="dashboard">
       <h2>Dashboard</h2>
       <p>Welcome back, {user.name || user.username}!</p>
-      <p>Your role: {user.role}</p>
-      <p>Session time: {count} seconds</p>
+      <p>Session time: {count * 5} seconds approx.</p>
 
       {stats ? (
         <div className="stats">
-          {formatStats(stats)}
+          {Object.keys(stats).map(key => (
+            <p key={key}>{key}: {stats[key]}</p>
+          ))}
         </div>
       ) : (
         <p>Loading stats...</p>
@@ -78,18 +66,11 @@ function Dashboard({ user }) {
         <h3>Notifications ({notifications.length})</h3>
         {notifications.map((notif, index) => (
           <div key={index} className="notification">
-            {/* XSS via dangerouslySetInnerHTML */}
-            <div dangerouslySetInnerHTML={{ __html: notif.message }} />
+            {/* FIX: Avoid dangerous XSS raw HTML mounting templates */}
+            <div>{notif.message}</div> 
           </div>
         ))}
       </div>
-
-      <button onClick={() => {
-        // Debug: dump user data
-        console.log("User data:", user);
-      }}>
-        Debug User
-      </button>
     </div>
   );
 }

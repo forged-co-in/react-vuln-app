@@ -1,96 +1,128 @@
 import React, { useState } from 'react';
 import { apiGet } from '../utils/api';
 
-function SearchBar() {
+// ✅ FIXED: Destructured addToCart from component props
+function SearchBar({ addToCart }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
-  const [searchHistory, setSearchHistory] = useState([]);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [warning, setWarning] = useState("");
 
   function handleSearch(e) {
     e.preventDefault();
+    const searchTerm = query.trim();
+    
+    if (searchTerm.length < 2) {
+      setWarning("Please enter at least 2 characters to search accurately.");
+      setResults([]);
+      return;
+    }
 
-    // XSS vulnerability 1: eval with user input
-    var searchTerm = query.trim().toLowerCase();
-    eval("var searchQuery = '" + searchTerm + "'");
+    setWarning(""); 
+    setLoading(true);
+    setHasSearched(true);
 
-    // XSS vulnerability 2: dangerouslySetInnerHTML with unsanitized input
-    var displayQuery = "<mark>" + searchTerm + "</mark>";
-
-    // SQL injection vulnerability (conceptual)
-    // db.query("SELECT * FROM products WHERE name LIKE '%" + searchTerm + "%'")
-
-    // No input sanitization
-    apiGet("/search?q=" + encodeURI(searchTerm))
+    apiGet("/search?q=" + encodeURIComponent(searchTerm))
       .then(data => {
-        // Processes HTML from API response
         setResults(data.results || []);
       })
-      .catch(() => {});
-
-    // Stores raw search history in localStorage
-    var history = JSON.parse(localStorage.getItem("searchHistory") || "[]");
-    history.push({
-      query: searchTerm,
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent
-    });
-    localStorage.setItem("searchHistory", JSON.stringify(history));
-    setSearchHistory(history);
-  }
-
-  // Insecure: exposes search history via JS injection
-  function clearHistory() {
-    localStorage.removeItem("searchHistory");
-    setSearchHistory([]);
-  }
-
-  // Renders raw HTML from search results
-  function renderResult(result) {
-    return { __html: result.snippet };
+      .catch(err => console.error("Error executing database search stream:", err))
+      .finally(() => setLoading(false));
   }
 
   return (
-    <div className="search-bar">
-      <h2>Search</h2>
-      <form onSubmit={handleSearch}>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search for products..."
+    <div className="search-bar" style={{ padding: "30px", maxWidth: "800px", margin: "auto", fontFamily: "sans-serif" }}>
+      <h2>Catalog Search Tool</h2>
+      
+      <form onSubmit={handleSearch} style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
+        <input 
+          type="text" 
+          value={query} 
+          onChange={(e) => {
+            setQuery(e.target.value);
+            if (e.target.value.trim().length >= 2) setWarning(""); 
+          }} 
+          placeholder="Type product name (e.g., Laptop, Mouse)..." 
+          style={{ width: "100%", padding: "10px", borderRadius: "4px", border: "1px solid #ccc" }}
+          required
         />
-        <button type="submit">Search</button>
+        <button 
+          type="submit" 
+          style={{ padding: "10px 25px", background: "#007bff", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}
+        >
+          {loading ? "Searching..." : "Search"}
+        </button>
       </form>
 
-      <div className="results">
-        {results.map((result, index) => (
-          <div key={index} className="result-item">
-            <h4>{result.title}</h4>
-            {/* XSS vulnerability */}
-            <div dangerouslySetInnerHTML={renderResult(result)} />
-            <span>Price: ${result.price}</span>
-          </div>
-        ))}
-      </div>
-
-      {searchHistory.length > 0 && (
-        <div className="search-history">
-          <h3>Recent Searches</h3>
-          {searchHistory.map((item, i) => (
-            <p key={i}>
-              <span dangerouslySetInnerHTML={{ __html: item.query }} />
-              <small> - {item.timestamp}</small>
-            </p>
-          ))}
-          <button onClick={clearHistory}>Clear History</button>
-        </div>
+      {warning && (
+        <p style={{ color: "#856404", backgroundColor: "#fff3cd", padding: "10px", borderRadius: "4px", margin: "0 0 20px 0", fontSize: "14px" }}>
+          ⚠️ {warning}
+        </p>
       )}
 
-      {/* Badges are stored as innerHTML */}
-      <div id="badge-container" />
-      <script>
-        {`document.getElementById("badge-container").innerHTML = "<span>Powered by Insecure Search v1.0</span>";`}
-      </script>
+      <div className="results">
+        {loading ? (
+          <p style={{ color: "#666" }}>Scanning database clusters...</p>
+        ) : results.length > 0 ? (
+          results.map((result) => (
+            <div 
+              key={result.id || result.title} 
+              className="result-item" 
+              style={{ 
+                border: "1px solid #ddd", 
+                padding: "20px", 
+                borderRadius: "6px", 
+                marginBottom: "15px", 
+                backgroundColor: "#fff",
+                display: "flex",
+                justifyContent: "between",
+                alignItems: "center"
+              }}
+            >
+              {/* Left Side: Product details */}
+              <div style={{ flexGrow: 1 }}>
+                <h4 style={{ margin: "0 0 5px 0", color: "#007bff", fontSize: "18px" }}>{result.title}</h4>
+                <p style={{ margin: "0 0 8px 0", color: "#555", fontSize: "14px" }}>{result.snippet || "No description provided."}</p>
+                <span style={{ fontWeight: "bold", color: "#28a745", fontSize: "16px" }}>Price: ${result.price}</span>
+              </div>
+
+              {/* Right Side: ✅ NEW Add to Cart Action Button */}
+              <div>
+                <button 
+                  onClick={() => {
+                    // Rebuild the object structure to match expected shopping cart item keys
+                    const productMapping = {
+                      id: result.id,
+                      name: result.title,
+                      price: result.price
+                    };
+                    addToCart(productMapping);
+                    alert(`"${result.title}" added to your cart!`);
+                  }}
+                  style={{ 
+                    padding: "10px 16px", 
+                    background: "#28a745", 
+                    color: "#fff", 
+                    border: "none", 
+                    borderRadius: "4px", 
+                    cursor: "pointer", 
+                    fontWeight: "bold" 
+                  }}
+                >
+                  Add to Cart
+                </button>
+              </div>
+            </div>
+          ))
+        ) : (
+          hasSearched && !warning && (
+            <p style={{ color: "#721c24", backgroundColor: "#f8d7da", padding: "12px", borderRadius: "4px" }}>
+              No inventory items match your target keywords. Try another word!
+            </p>
+          )
+        )}
+      </div>
     </div>
   );
 }
