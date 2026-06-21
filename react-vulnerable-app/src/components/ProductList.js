@@ -4,7 +4,7 @@ import { fetchLiveProducts } from '../utils/api';
 function ProductList({ addToCart }) {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("name");
+  const [sortBy, setSortBy] = useState("name"); // "name", "price-asc", or "price-desc"
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -19,16 +19,21 @@ function ProductList({ addToCart }) {
       });
   }, []);
 
-  // ✅ IMAGE 1 FIX: Removed SweetAlert2 from here so only the top-side notification banner displays.
   const handleItemPurchaseAction = (product) => {
     addToCart(product);
   };
 
+  // ✅ TASK 2 FIX: Evaluates sorting vectors based on Low-to-High or High-to-Low selection parameters
   const filteredProducts = products
     .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
     .sort((a, b) => {
-      if (sortBy === "price") return a.price - b.price;
-      return a.name.localeCompare(b.name);
+      if (sortBy === "price-asc") {
+        return parseFloat(a.price) - parseFloat(b.price);
+      }
+      if (sortBy === "price-desc") {
+        return parseFloat(b.price) - parseFloat(a.price);
+      }
+      return a.name.localeCompare(b.name); // Default falls back to Name alphabetical order
     });
 
   if (isLoading) {
@@ -42,20 +47,23 @@ function ProductList({ addToCart }) {
       </h2>
       
       <div style={{ display: "flex", gap: "12px", marginBottom: "30px" }}>
-        <input 
+        {/* <input 
           type="text" 
           placeholder="Search products..." 
           value={searchTerm} 
           onChange={e => setSearchTerm(e.target.value)}
           style={{ padding: "0.6rem 1rem", borderRadius: "4px", border: "1px solid #e9ecef", width: "280px", fontSize: "0.9rem" }}
         />
+         */}
+        {/* Upgraded Sort Select Menu Options */}
         <select 
           value={sortBy} 
           onChange={e => setSortBy(e.target.value)}
-          style={{ padding: "0.6rem 1rem", borderRadius: "4px", border: "1px solid #e9ecef", background: "#ffffff", fontSize: "0.9rem" }}
+          style={{ padding: "0.6rem 1rem", borderRadius: "4px", border: "1px solid #e9ecef", background: "#ffffff", fontSize: "0.9rem", color: "#0f172a", fontWeight: "500" }}
         >
           <option value="name">Sort by Name</option>
-          <option value="price">Sort by Price</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
         </select>
       </div>
 

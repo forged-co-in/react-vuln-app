@@ -416,3 +416,11 @@ body {
     transform: translateY(0) scale(1);
   }
 }
+/* =========================================================================
+   🔝 FLOATING INTERACTIVE SCROLL ELEVATION TRANSITIONS
+   ========================================================================= */
+.scroll-top-btn:hover {
+  background-color: #1d4ed8 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3) !important;
+}
