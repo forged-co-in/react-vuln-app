@@ -2,21 +2,21 @@
   "version": 2,
   "builds": [
     {
-      "src": "react-vulnerable-app/package.json",
+      "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
         "distDir": "build"
       }
     },
     {
-      "src": "react-vulnerable-app/server/server.js",
+      "src": "server/server.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "react-vulnerable-app/server/server.js"
+      "dest": "server/server.js"
     },
     {
       "src": "/static/(.*)",
