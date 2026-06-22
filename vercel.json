@@ -4,7 +4,9 @@
     {
       "src": "react-vulnerable-app/package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "build" }
+      "config": {
+        "distDir": "build"
+      }
     },
     {
       "src": "react-vulnerable-app/server/server.js",
@@ -17,11 +19,9 @@
       "dest": "react-vulnerable-app/server/server.js"
     },
     {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "react-vulnerable-app/index.html"
+      "src": "/static/(.*)",
+      "dest": "react-vulnerable-app/static/$1",
+      "continue": true
     }
   ]
 }
