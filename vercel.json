@@ -17,9 +17,11 @@
       "dest": "react-vulnerable-app/server/server.js"
     },
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/(.*)",
-      "dest": "react-vulnerable-app/$1",
-      "continue": true
+      "dest": "react-vulnerable-app/index.html"
     }
   ]
 }
