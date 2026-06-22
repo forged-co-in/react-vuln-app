@@ -44,21 +44,22 @@ export async function adminDeleteTargetUser(username) {
   });
   return response.json();
 }
-// Add these back onto the bottom of your src/utils/api.js ONLY if your legacy widgets still use them:
+
+// Global generic helpers utilizing dynamic paths
 export async function apiGet(endpoint) {
-  const response = await fetch(`http://localhost:3000/api${endpoint}`);
+  const response = await fetch(`${API_BASE}${endpoint}`);
   return response.json();
 }
 
 export async function apiPost(endpoint, data) {
-  const response = await fetch(`http://localhost:3000/api${endpoint}`, {
+  const response = await fetch(`${API_BASE}${endpoint}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data)
   });
   return response.json();
 }
-// ✅ FIX: Export getUserData so UserProfile.js can successfully import it
+
 export async function getUserData(userId) {
   return apiGet(`/users/${userId}`);
 }
@@ -70,7 +71,7 @@ export async function adminAddProduct(productData) {
 
 export async function adminUpdateProduct(productId, productData) {
   const token = localStorage.getItem("authToken");
-  const response = await fetch(`http://localhost:3000/api/admin/products/${productId}`, {
+  const response = await fetch(`${API_BASE}/admin/products/${productId}`, {
     method: "PUT",
     headers: {
       "Authorization": `Bearer ${token}`,
@@ -83,7 +84,7 @@ export async function adminUpdateProduct(productId, productData) {
 
 export async function adminDeleteProduct(productId) {
   const token = localStorage.getItem("authToken");
-  const response = await fetch(`http://localhost:3000/api/admin/products/${productId}`, {
+  const response = await fetch(`${API_BASE}/admin/products/${productId}`, {
     method: "DELETE",
     headers: { "Authorization": `Bearer ${token}` }
   });
@@ -93,7 +94,7 @@ export async function adminDeleteProduct(productId) {
 // Admin User Modification Request
 export async function adminUpdateUserData(username, updatedData) {
   const token = localStorage.getItem("authToken");
-  const response = await fetch(`http://localhost:3000/api/admin/users/${username}`, {
+  const response = await fetch(`${API_BASE}/admin/users/${username}`, {
     method: "PUT",
     headers: {
       "Authorization": `Bearer ${token}`,
@@ -105,15 +106,13 @@ export async function adminUpdateUserData(username, updatedData) {
 }
 
 export async function fetchLiveProducts() {
-  const response = await fetch("http://localhost:3000/api/products");
+  const response = await fetch(`${API_BASE}/products`);
   return response.json();
 }
 
-// ==========================================
-// PROMO CODE VALIDATION API HELPER
-// ==========================================
+// Promo Code Validation Helper
 export async function validatePromoCode(couponCodeString) {
-  const response = await fetch("http://localhost:3000/api/cart/validate-promo", {
+  const response = await fetch(`${API_BASE}/cart/validate-promo`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -122,9 +121,10 @@ export async function validatePromoCode(couponCodeString) {
   });
   return response.json();
 }
-// Feature 2 & 3 checkout pipelines
+
+// Checkout Pipelines
 export async function checkoutUserCart(checkoutPayload) {
-  const response = await fetch("http://localhost:3000/api/orders/checkout", {
+  const response = await fetch(`${API_BASE}/orders/checkout`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(checkoutPayload)
@@ -133,13 +133,13 @@ export async function checkoutUserCart(checkoutPayload) {
 }
 
 export async function fetchUserOrderHistory(username) {
-  const response = await fetch(`http://localhost:3000/api/orders/${username}`);
+  const response = await fetch(`${API_BASE}/orders/${username}`);
   return response.json();
 }
 
-// Feature 5 product comments pipeline queries
+// Product Review Pipelines
 export async function submitProductReview(productId, reviewData) {
-  const response = await fetch(`http://localhost:3000/api/products/${productId}/reviews`, {
+  const response = await fetch(`${API_BASE}/products/${productId}/reviews`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(reviewData)
@@ -148,6 +148,6 @@ export async function submitProductReview(productId, reviewData) {
 }
 
 export async function fetchProductReviews(productId) {
-  const response = await fetch(`http://localhost:3000/api/products/${productId}/reviews`);
+  const response = await fetch(`${API_BASE}/products/${productId}/reviews`);
   return response.json();
 }
