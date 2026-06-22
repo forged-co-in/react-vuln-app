@@ -494,6 +494,12 @@ app.post("/api/cart/:username/sync", async (req, res) => {
     return res.status(500).json({ error: "Failed to write cloud cart matrices: " + error.message });
   }
 });
-server.listen(PORT, () => {
-  console.log(`🚀 Cloud Native Server active on port ${PORT}`);
-});
+// Locate this block at the bottom of your server.js file:
+if (process.env.NODE_ENV !== 'production') {
+  server.listen(PORT, () => {
+    console.log(`🚀 Local Development Server active on port ${PORT}`);
+  });
+}
+
+// ✅ CRITICAL REFACTOR: Export the express app instance so Vercel can route incoming serverless function payloads cleanly
+module.exports = app;

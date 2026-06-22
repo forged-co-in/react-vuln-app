@@ -105,7 +105,7 @@ function UserProfile() {
         <p><strong>Authority Classification Tier:</strong> <span style={{ fontWeight: "bold", color: profile.role === "admin" ? "#dc3545" : "#28a745" }}>{profile.role.toUpperCase()}</span></p>
       </div>
 
-      <div className="notes-section" style={{ marginTop: "30px", borderTop: "1px solid #eee", paddingTop: "20px" }}>
+      {/* <div className="notes-section" style={{ marginTop: "30px", borderTop: "1px solid #eee", paddingTop: "20px" }}>
         <h3>📝 Private Tab Notes (Isolated Context)</h3>
         <p style={{ fontSize: "13px", color: "#777", margin: "0 0 10px 0" }}>These text notes are securely locked to this window view and won't leak onto shared devices.</p>
         <textarea
@@ -121,7 +121,7 @@ function UserProfile() {
         >
           Save Private Notes String
         </button>
-      </div>
+      </div> */}
     </div>
   );
 }

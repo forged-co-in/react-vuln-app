@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-// ✅ Import SweetAlert2 at the top of the file
 import Swal from 'sweetalert2';
 import { 
   adminGetAllUsers, adminDeleteTargetUser, adminUpdateUserData,
@@ -42,9 +41,30 @@ function AdminPanel({ user }) {
   const [pImage, setPImage] = useState(""); 
   const [editingProductId, setEditingProductId] = useState(null); 
 
+  // Sorting State Hook Parameter for Inventory Datatable Grid
+  const [inventorySortBy, setInventorySortBy] = useState("default");
+
   // Orders Log hooks
   const [ordersRegistry, setOrdersRegistry] = useState([]);
   const [notifications, setNotifications] = useState([]);
+
+  // ✅ FIXED: Dynamically hides ONLY the top links grid row of the footer on Admin Side
+  useEffect(() => {
+    if (!isSessionValid) return;
+
+    // Select the grid containing the navigation columns links
+    const footerTopGrid = document.querySelector('.footer-top-grid');
+    if (footerTopGrid) {
+      footerTopGrid.style.display = 'none';
+    }
+
+    // Cleanup: Automatically restore link columns visibility when Admin logs out or leaves page
+    return () => {
+      if (footerTopGrid) {
+        footerTopGrid.style.display = 'grid'; // Returns to original grid system layout structure
+      }
+    };
+  }, [isSessionValid]);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -56,7 +76,6 @@ function AdminPanel({ user }) {
 
   useEffect(() => {
     if (!isSessionValid) {
-      // ✅ Ported security intercept message to SweetAlert2
       Swal.fire({
         title: 'Security Violation Intercepted',
         text: 'Please authenticate with a valid 2FA token.',
@@ -111,7 +130,6 @@ function AdminPanel({ user }) {
 
   if (!isSessionValid) return null; 
 
-  // ✅ UPGRADED STATUS LIFECYCLE HANDLER WITH SWEETALERT2
   function handleAdvanceOrderStatusLifecycle(orderId, currentStatus) {
     let targetedNextMilestoneStr = "";
     if (currentStatus === "Processing Order") targetedNextMilestoneStr = "Order Confirmed";
@@ -123,7 +141,6 @@ function AdminPanel({ user }) {
     apiPost(`/admin/orders/${orderId}/status`, { nextStatus: targetedNextMilestoneStr })
       .then(res => {
         if (res && (res.success || !res.error)) {
-          // 🎉 Success Status Modal
           Swal.fire({
             title: 'Milestone Advanced',
             text: `Transaction Milestone successfully moved to: ${targetedNextMilestoneStr}`,
@@ -134,7 +151,6 @@ function AdminPanel({ user }) {
           });
           refreshOrdersRegistryList(); 
         } else {
-          // ❌ Server Error Warning Modal
           Swal.fire({
             title: 'Execution Blocked',
             text: `Server Warning: ${res?.error || "Failed to update lifecycle phase."}`,
@@ -149,7 +165,6 @@ function AdminPanel({ user }) {
       });
   }
 
-  // ✅ UPGRADED USER EDIT ACTIONS WITH SWEETALERT2
   function handleSaveUserChanges(username) {
     adminUpdateUserData(username, { email: editEmail, role: editRole })
       .then(res => {
@@ -165,7 +180,6 @@ function AdminPanel({ user }) {
       }).catch(err => console.error(err));
   }
 
-  // ✅ UPGRADED INVENTORY INJECTION ALERTS WITH SWEETALERT2
   function handleProductSubmit(e) {
     e.preventDefault();
     const payload = { name: pName, price: parseFloat(pPrice), description: pDesc, stock: parseInt(pStock), image: pImage || "" };
@@ -212,6 +226,16 @@ function AdminPanel({ user }) {
   const activeOrders = ordersRegistry.filter(order => order.status !== "Order Delivered");
   const completedOrders = ordersRegistry.filter(order => order.status === "Order Delivered");
 
+  const sortedProducts = [...products].sort((a, b) => {
+    if (inventorySortBy === "price-low-high") {
+      return parseFloat(a.price) - parseFloat(b.price);
+    }
+    if (inventorySortBy === "price-high-low") {
+      return parseFloat(b.price) - parseFloat(a.price);
+    }
+    return a.name.localeCompare(b.name);
+  });
+
   return (
     <div style={{ padding: "30px", maxWidth: "1200px", margin: "auto", fontFamily: "sans-serif" }}>
       <h2>System Administrator Command Center Workspace</h2>
@@ -245,7 +269,6 @@ function AdminPanel({ user }) {
                     <button style={{ marginRight: "8px", background: "#17a2b8", color: "#fff", border: "none", padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}>Edit</button>
                     <button 
                       onClick={() => { 
-                        // ✅ Modern interactive delete confirmation check block using SweetAlert2
                         Swal.fire({
                           title: 'Drop Profile Context?',
                           text: `Are you completely sure you want to permanently erase user account: ${u.username}?`,
@@ -297,8 +320,24 @@ function AdminPanel({ user }) {
             {editingProductId && <button type="button" onClick={resetProductForm} style={{ background: "#6c757d", color: "#fff", padding: "10px 20px", border: "none", borderRadius: "4px", cursor: "pointer" }}>Exit Edit State</button>}
           </form>
 
-          <h3>Active Live Store Catalog Items ({products.length})</h3>
-          <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "15px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+            <h3 style={{ margin: 0 }}>Active Live Store Catalog Items ({sortedProducts.length})</h3>
+            
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <label style={{ fontSize: "0.9rem", fontWeight: "600", color: "#475569" }}>Filter List Matrix:</label>
+              <select 
+                value={inventorySortBy} 
+                onChange={e => setInventorySortBy(e.target.value)}
+                style={{ padding: "6px 12px", borderRadius: "4px", border: "1px solid #ccc", background: "#ffffff", fontSize: "0.875rem", fontWeight: "500", cursor: "pointer" }}
+              >
+                <option value="default">Sort by Name (A-Z)</option>
+                <option value="price-low-high">Price: Low to High</option>
+                <option value="price-high-low">Price: High to Low</option>
+              </select>
+            </div>
+          </div>
+
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "#212529", color: "#fff", textAlign: "left" }}>
                 <th style={{ padding: "12px", border: "1px solid #ddd", width: "80px" }}>Image</th>
@@ -309,7 +348,7 @@ function AdminPanel({ user }) {
               </tr>
             </thead>
             <tbody>
-              {products.map(prod => (
+              {sortedProducts.map(prod => (
                 <tr key={prod.id} style={{ borderBottom: "1px solid #ddd" }}>
                   <td style={{ padding: "12px", border: "1px solid #ddd", textAlign: "center" }}>
                     <div style={{ width: "50px", height: "50px", backgroundColor: "#f0f2f5", borderRadius: "4px", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", margin: "auto" }}>
@@ -317,13 +356,12 @@ function AdminPanel({ user }) {
                     </div>
                   </td>
                   <td style={{ padding: "12px", border: "1px solid #ddd" }}><strong>{prod.name}</strong></td>
-                  <td style={{ padding: "12px", border: "1px solid #ddd" }}>${prod.price}</td>
+                  <td style={{ padding: "12px", border: "1px solid #ddd" }}>${parseFloat(prod.price).toFixed(2)}</td>
                   <td style={{ padding: "12px", border: "1px solid #ddd" }}>{prod.stock} units</td>
                   <td style={{ padding: "12px", border: "1px solid #ddd" }}>
                     <button onClick={() => handleEditProductClick(prod)} style={{ marginRight: "8px", background: "#ffc107", color: "#000", border: "none", padding: "6px 12px", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>Edit</button>
                     <button 
                       onClick={() => { 
-                        // ✅ Modern interactive delete confirmation check block for products
                         Swal.fire({
                           title: 'Delete Catalog Item?',
                           text: `Permanently delete inventory reference: "${prod.name}"?`,
@@ -335,7 +373,7 @@ function AdminPanel({ user }) {
                         }).then((result) => {
                           if (result.isConfirmed) {
                             adminDeleteProduct(prod.id).then(() => {
-                              Swal.fire('Erazed!', 'Product successfully dropped.', 'success');
+                              Swal.fire('Erased!', 'Product successfully dropped.', 'success');
                               refreshProductList();
                             });
                           }
@@ -396,7 +434,7 @@ function AdminPanel({ user }) {
                     <span style={{ fontWeight: "bold", fontSize: "14px" }}>Itemized Basket Breakdown:</span>
                     <ul style={{ fontSize: "13px", color: "#444", margin: "5px 0 0 0" }}>
                       {item.items?.map((prod, idx) => (
-                        <li key={idx}>Li {prod.name} (Quantity: {prod.quantity}) — Price Mapping: ${prod.price}</li>
+                        <li key={idx}>🎬 {prod.name} (Quantity: {prod.quantity}) — Price Mapping: ${prod.price}</li>
                       ))}
                     </ul>
                   </div>
