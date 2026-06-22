@@ -20,12 +20,11 @@
     },
     {
       "src": "/static/(.*)",
-      "dest": "react-vulnerable-app/static/$1",
-      "continue": true
+      "dest": "react-vulnerable-app/build/static/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "react-vulnerable-app/index.html"
+      "dest": "react-vulnerable-app/build/index.html"
     }
   ]
 }
