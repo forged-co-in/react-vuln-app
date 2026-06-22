@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+// ✅ Import SweetAlert2 at the top of the file
+import Swal from 'sweetalert2';
 import { 
   adminGetAllUsers, adminDeleteTargetUser, adminUpdateUserData,
   fetchLiveProducts, adminAddProduct, adminUpdateProduct, adminDeleteProduct,
@@ -23,7 +25,7 @@ function AdminPanel({ user }) {
   // Main Navigation Tabs
   const [activeTab, setActiveTab] = useState("users"); 
   
-  // ✅ NEW: Sub-tabs to split active vs completed orders
+  // Sub-tabs to split active vs completed orders
   const [ordersSubTab, setOrdersSubTab] = useState("active");
 
   const [users, setUsers] = useState([]);
@@ -54,7 +56,13 @@ function AdminPanel({ user }) {
 
   useEffect(() => {
     if (!isSessionValid) {
-      alert("⛔ Security Violation Intercepted: Please authenticate with a valid 2FA token.");
+      // ✅ Ported security intercept message to SweetAlert2
+      Swal.fire({
+        title: 'Security Violation Intercepted',
+        text: 'Please authenticate with a valid 2FA token.',
+        icon: 'error',
+        confirmButtonColor: '#dc2626'
+      });
       sessionStorage.removeItem("currentUser"); 
       navigate("/login");
     } else {
@@ -103,6 +111,7 @@ function AdminPanel({ user }) {
 
   if (!isSessionValid) return null; 
 
+  // ✅ UPGRADED STATUS LIFECYCLE HANDLER WITH SWEETALERT2
   function handleAdvanceOrderStatusLifecycle(orderId, currentStatus) {
     let targetedNextMilestoneStr = "";
     if (currentStatus === "Processing Order") targetedNextMilestoneStr = "Order Confirmed";
@@ -114,10 +123,24 @@ function AdminPanel({ user }) {
     apiPost(`/admin/orders/${orderId}/status`, { nextStatus: targetedNextMilestoneStr })
       .then(res => {
         if (res && (res.success || !res.error)) {
-          alert(`Transaction Milestone advanced to: ${targetedNextMilestoneStr}`);
+          // 🎉 Success Status Modal
+          Swal.fire({
+            title: 'Milestone Advanced',
+            text: `Transaction Milestone successfully moved to: ${targetedNextMilestoneStr}`,
+            icon: 'success',
+            confirmButtonColor: '#2563eb',
+            timer: 2500,
+            timerProgressBar: true
+          });
           refreshOrdersRegistryList(); 
         } else {
-          alert(`Server Warning: ${res?.error || "Execution failed."}`);
+          // ❌ Server Error Warning Modal
+          Swal.fire({
+            title: 'Execution Blocked',
+            text: `Server Warning: ${res?.error || "Failed to update lifecycle phase."}`,
+            icon: 'warning',
+            confirmButtonColor: '#dc2626'
+          });
         }
       })
       .catch(err => {
@@ -126,16 +149,23 @@ function AdminPanel({ user }) {
       });
   }
 
+  // ✅ UPGRADED USER EDIT ACTIONS WITH SWEETALERT2
   function handleSaveUserChanges(username) {
     adminUpdateUserData(username, { email: editEmail, role: editRole })
       .then(res => {
         if (res.success) {
-          alert("User properties modified successfully!");
+          Swal.fire({
+            title: 'Properties Modified',
+            text: `User details for ${username} have been successfully updated.`,
+            icon: 'success',
+            confirmButtonColor: '#2563eb'
+          });
           refreshUserList(); setSelectedUser(null);
         }
       }).catch(err => console.error(err));
   }
 
+  // ✅ UPGRADED INVENTORY INJECTION ALERTS WITH SWEETALERT2
   function handleProductSubmit(e) {
     e.preventDefault();
     const payload = { name: pName, price: parseFloat(pPrice), description: pDesc, stock: parseInt(pStock), image: pImage || "" };
@@ -143,14 +173,24 @@ function AdminPanel({ user }) {
     if (editingProductId) {
       adminUpdateProduct(editingProductId, payload).then(res => {
         if (res.success) {
-          alert("Product adjusted successfully!");
+          Swal.fire({
+            title: 'Catalog Refreshed',
+            text: 'Product specifications adjusted successfully!',
+            icon: 'success',
+            confirmButtonColor: '#16a34a'
+          });
           resetProductForm(); refreshProductList();
         }
       }).catch(err => console.error(err));
     } else {
       adminAddProduct(payload).then(res => {
         if (res.success) {
-          alert("Product injected to sales catalog!");
+          Swal.fire({
+            title: 'Inventory Published',
+            text: `"${pName}" injected into sales catalog database.`,
+            icon: 'success',
+            confirmButtonColor: '#16a34a'
+          });
           resetProductForm(); refreshProductList();
         }
       }).catch(err => console.error(err));
@@ -169,7 +209,6 @@ function AdminPanel({ user }) {
     setEditingProductId(null);
   }
 
-  // ✅ LOGICAL SPLITTING ARRAYS FILTERING
   const activeOrders = ordersRegistry.filter(order => order.status !== "Order Delivered");
   const completedOrders = ordersRegistry.filter(order => order.status === "Order Delivered");
 
@@ -204,7 +243,30 @@ function AdminPanel({ user }) {
                   <td style={{ padding: "12px", border: "1px solid #ddd" }}><strong style={{ color: u.role === "admin" ? "#dc3545" : "#333" }}>{u.role}</strong></td>
                   <td style={{ padding: "12px", border: "1px solid #ddd" }}>
                     <button style={{ marginRight: "8px", background: "#17a2b8", color: "#fff", border: "none", padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}>Edit</button>
-                    <button onClick={() => { if(window.confirm(`Drop profile layout context for ${u.username}?`)) adminDeleteTargetUser(u.username).then(() => refreshUserList()); }} style={{ background: "#dc3545", color: "#fff", border: "none", padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}>Delete</button>
+                    <button 
+                      onClick={() => { 
+                        // ✅ Modern interactive delete confirmation check block using SweetAlert2
+                        Swal.fire({
+                          title: 'Drop Profile Context?',
+                          text: `Are you completely sure you want to permanently erase user account: ${u.username}?`,
+                          icon: 'warning',
+                          showCancelButton: true,
+                          confirmButtonColor: '#dc2626',
+                          cancelButtonColor: '#64748b',
+                          confirmButtonText: 'Yes, delete profile'
+                        }).then((result) => {
+                          if (result.isConfirmed) {
+                            adminDeleteTargetUser(u.username).then(() => {
+                              Swal.fire('Deleted!', 'User records dropped cleanly.', 'success');
+                              refreshUserList();
+                            });
+                          }
+                        });
+                      }} 
+                      style={{ background: "#dc3545", color: "#fff", border: "none", padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -259,7 +321,30 @@ function AdminPanel({ user }) {
                   <td style={{ padding: "12px", border: "1px solid #ddd" }}>{prod.stock} units</td>
                   <td style={{ padding: "12px", border: "1px solid #ddd" }}>
                     <button onClick={() => handleEditProductClick(prod)} style={{ marginRight: "8px", background: "#ffc107", color: "#000", border: "none", padding: "6px 12px", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>Edit</button>
-                    <button onClick={() => { if(window.confirm(`Permanently delete: "${prod.name}"?`)) adminDeleteProduct(prod.id).then(() => refreshProductList()); }} style={{ background: "#dc3545", color: "#fff", border: "none", padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}>Delete</button>
+                    <button 
+                      onClick={() => { 
+                        // ✅ Modern interactive delete confirmation check block for products
+                        Swal.fire({
+                          title: 'Delete Catalog Item?',
+                          text: `Permanently delete inventory reference: "${prod.name}"?`,
+                          icon: 'warning',
+                          showCancelButton: true,
+                          confirmButtonColor: '#dc2626',
+                          cancelButtonColor: '#64748b',
+                          confirmButtonText: 'Yes, delete item'
+                        }).then((result) => {
+                          if (result.isConfirmed) {
+                            adminDeleteProduct(prod.id).then(() => {
+                              Swal.fire('Erazed!', 'Product successfully dropped.', 'success');
+                              refreshProductList();
+                            });
+                          }
+                        });
+                      }} 
+                      style={{ background: "#dc3545", color: "#fff", border: "none", padding: "6px 12px", borderRadius: "4px", cursor: "pointer" }}
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -270,7 +355,6 @@ function AdminPanel({ user }) {
 
       {activeTab === "orders" && (
         <div>
-          {/* ✅ SUB TAB NAVIGATION CONTROLS */}
           <div style={{ display: "flex", gap: "10px", marginBottom: "20px", borderBottom: "1px solid #ddd", paddingBottom: "10px" }}>
             <button 
               onClick={() => setOrdersSubTab("active")} 
@@ -290,7 +374,6 @@ function AdminPanel({ user }) {
             📋 {ordersSubTab === "active" ? "Master Sales Order Transaction Logs (In-Progress)" : "Completed Archive Registry Logs"}
           </h3>
 
-          {/* Conditional evaluation depending on selection parameters */}
           {((ordersSubTab === "active" ? activeOrders : completedOrders).length === 0) ? (
             <p style={{ color: "#666", padding: "20px" }}>No documents discovered inside this registry track view context.</p>
           ) : (
@@ -313,7 +396,7 @@ function AdminPanel({ user }) {
                     <span style={{ fontWeight: "bold", fontSize: "14px" }}>Itemized Basket Breakdown:</span>
                     <ul style={{ fontSize: "13px", color: "#444", margin: "5px 0 0 0" }}>
                       {item.items?.map((prod, idx) => (
-                        <li key={idx}>🎬 {prod.name} (Quantity: {prod.quantity}) — Price Mapping: ${prod.price}</li>
+                        <li key={idx}>Li {prod.name} (Quantity: {prod.quantity}) — Price Mapping: ${prod.price}</li>
                       ))}
                     </ul>
                   </div>
