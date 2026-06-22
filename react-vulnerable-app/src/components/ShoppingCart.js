@@ -40,6 +40,16 @@ function ShoppingCart({ cartItems = [], updateQuantity, removeFromCart, triggerG
       .catch(() => setPromoError("Server handshake failure during verification."));
   }
 
+  // ✅ PROMO RESET CONTROLLER ROUTINE
+  function handleRemovePromo() {
+    setAppliedPromo(null);
+    setPromoInput("");
+    setPromoError("");
+    if (triggerGlobalAlert) {
+      triggerGlobalAlert("Promo coupon cleared. Cart pricing metrics normalized.", "info");
+    }
+  }
+
   async function executeSecureCheckout() {
     const savedUser = sessionStorage.getItem("currentUser");
     if (!savedUser) {
@@ -63,7 +73,6 @@ function ShoppingCart({ cartItems = [], updateQuantity, removeFromCart, triggerG
     try {
       const result = await checkoutUserCart(checkoutPayload);
       if (result.success) {
-        // ✅ TASK 3 FIX: Directs successful purchase verification straight into our custom layout notification window
         if (triggerGlobalAlert) {
           triggerGlobalAlert(`🎉 Transaction Confirmed! Invoice ID: ${result.orderId}`, "success");
         }
@@ -102,8 +111,6 @@ function ShoppingCart({ cartItems = [], updateQuantity, removeFromCart, triggerG
                   >
                     −
                   </button>
-                  
-                  {/* ✅ TASK 4 FIX: Implemented custom utility classes to drop default native layout input spinners */}
                   <input 
                     type="number" 
                     min="1" 
@@ -112,7 +119,6 @@ function ShoppingCart({ cartItems = [], updateQuantity, removeFromCart, triggerG
                     className="clean-core-quantity-input"
                     style={{ width: "40px", border: "none", borderLeft: "1px solid #e9ecef", borderRight: "1px solid #e9ecef", background: "#ffffff", padding: "6px 0", textAlign: "center", fontSize: "0.875rem", fontWeight: "600" }}
                   />
-                  
                   <button 
                     onClick={() => updateQuantity(item.id, item.quantity + 1)}
                     style={{ border: "none", background: "transparent", padding: "6px 12px", cursor: "pointer", fontWeight: "700", color: "#475569" }}
@@ -136,9 +142,20 @@ function ShoppingCart({ cartItems = [], updateQuantity, removeFromCart, triggerG
               <span>Cart Subtotal:</span> <strong>${runningSubtotal.toFixed(2)}</strong>
             </p>
             {appliedPromo && (
-              <p style={{ display: "flex", justifyContent: "space-between", color: "#16a34a", fontSize: "0.95rem", marginBottom: "10px" }}>
-                <span>Discount Applied ({appliedPromo.code}):</span> <strong>-${discountAmount.toFixed(2)}</strong>
-              </p>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", color: "#16a34a", fontSize: "0.95rem", marginBottom: "10px" }}>
+                <span>Discount Applied ({appliedPromo.code}):</span> 
+                {/* ✅ STYLED COUPON DETACH ACTION ELEMENT */}
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                  <strong>-${discountAmount.toFixed(2)}</strong>
+                  <button 
+                    type="button" 
+                    onClick={handleRemovePromo}
+                    style={{ background: "rgba(220,38,38,0.1)", color: "#dc2626", border: "none", padding: "2px 8px", borderRadius: "4px", fontSize: "0.75rem", fontWeight: "700", cursor: "pointer" }}
+                  >
+                    ✕ Remove
+                  </button>
+                </span>
+              </div>
             )}
             <hr style={{ border: "none", borderTop: "1px solid #e9ecef", margin: "15px 0" }} />
             <h3 style={{ display: "flex", justifyContent: "space-between", margin: "0 0 20px 0", fontSize: "1.3rem", fontWeight: "700" }}>
@@ -148,10 +165,29 @@ function ShoppingCart({ cartItems = [], updateQuantity, removeFromCart, triggerG
             <button 
               onClick={executeSecureCheckout}
               disabled={isCheckingOut || cartItems.length === 0}
-              style={{ width: "100%", padding: "12px", background: isCheckingOut ? "#ced4da" : "#2563eb", color: "#fff", border: "none", borderRadius: "4px", cursor: isCheckingOut ? "not-allowed" : "pointer", fontSize: "0.95rem", fontWeight: "700" }}
+              style={{ width: "100%", padding: "12px", background: isCheckingOut ? "#cbd5e1" : "#2563eb", color: "#fff", border: "none", borderRadius: "4px", cursor: isCheckingOut ? "not-allowed" : "pointer", fontSize: "0.95rem", fontWeight: "700" }}
             >
               {isCheckingOut ? "Completing Purchase..." : "Proceed to Secure Checkout"}
             </button>
+
+            <form onSubmit={handleApplyPromo} style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+              <input 
+                type="text" 
+                placeholder="Enter Promo Code (e.g. MEGA20, SAVE10)" 
+                value={promoInput}
+                onChange={e => setPromoInput(e.target.value)}
+                style={{ padding: "10px", borderRadius: "4px", border: "1px solid #e2e8f0", background: "#ffffff", width: "100%", maxWidth: "300px", fontSize: "0.9rem" }}
+                disabled={!!appliedPromo}
+              />
+              <button 
+                type="submit" 
+                style={{ background: "#0f172a", color: "#fff", border: "none", padding: "10px 20px", borderRadius: "4px", cursor: appliedPromo ? "not-allowed" : "pointer", fontWeight: "600", fontSize: "0.9rem" }}
+                disabled={!!appliedPromo}
+              >
+                Apply Coupon
+              </button>
+            </form>
+            {promoError && <p style={{ color: "#dc2626", fontSize: "0.85rem", marginTop: "8px", fontWeight: "500" }}>⚠️ {promoError}</p>}
           </div>
         </div>
       )}

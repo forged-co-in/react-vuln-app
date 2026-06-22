@@ -51,21 +51,16 @@ function App() {
 
   useEffect(() => {
     const toggleVisibility = () => {
-      if (window.scrollY > 300) {
-        setShowScrollBtn(true);
-      } else {
-        setShowScrollBtn(false);
-      }
+      if (window.scrollY > 300) setShowSuclBtn(true);
+      else setShowScrollBtn(false);
     };
+    const setShowSuclBtn = (val) => setShowScrollBtn(val);
     window.addEventListener('scroll', toggleVisibility);
     return () => window.removeEventListener('scroll', toggleVisibility);
   }, []);
 
   const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   useEffect(() => {
@@ -150,7 +145,7 @@ function App() {
   return (
     <AppProvider>
       <ErrorBoundary>
-        {/* ✅ ROOT FIX: Moved the loading escape gate inside the provider wrapper to fully kill the leaking text line on the DOM node */}
+        {/* ✅ REMOVED TEXT LEAK BLOCK DEFINITION FOR TASK 5 */}
         {!isConfigLoading && (
           <div className="app-layout-wrapper">
             
@@ -166,60 +161,64 @@ function App() {
             )}
             
             <nav className="navbar-container">
-              <Link to="/" className="nav-brand">
+              <Link to={user?.role === "admin" ? "/admin" : "/"} className="nav-brand">
                 Forged <span>E-Commerce</span>
               </Link>
               
               <div className="nav-links-wrapper">
-                <Link to="/" className="nav-item-link">Home</Link>
-                <Link to="/products" className="nav-item-link">Products</Link>
-                <Link to="/search" className="nav-item-link">Search</Link>
-                
-                <Link to="/cart" className="nav-item-link cart-link-badge">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <circle cx="9" cy="21" r="1"></circle>
-                    <circle cx="20" cy="21" r="1"></circle>
-                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                  </svg>
-                  Cart <span className="cart-badge-count">{cart.reduce((total, item) => total + item.quantity, 0)}</span>
-                </Link>
-
-                {user ? (
+                {/* ✅ TASK 6 CORE NAVIGATION EVALUATION FILTER LOGIC */}
+                {user?.role === "admin" ? (
                   <>
-                    <Link to={`/profile/${user.id || "me"}`} className="nav-item-link profile-link-badge">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                      </svg>
-                      Profile
-                    </Link>
-                    
-                    {user.role === "admin" ? (
-                      <Link to="/admin?tab=orders" className="nav-item-link">Orders</Link>
-                    ) : (
-                      <Link 
-                        to={`/orders/${(user.name || user.username || "").toLowerCase()}`} 
-                        className="nav-item-link"
-                        onClick={() => { setTimeout(() => window.location.reload(), 50); }}
-                      >
-                        Orders
-                      </Link>
-                    )}
-
-                    {user.role === "admin" && user.token && user.token.startsWith("admin-secure-session") && (
-                      <Link to="/admin" className="nav-item-link admin-highlight">Admin</Link>
+                    {/* Hides all user links completely for administrative profiles */}
+                    {user.token && user.token.startsWith("admin-secure-session") && (
+                      <Link to="/admin" className="nav-item-link admin-highlight">Admin Dashboard Center</Link>
                     )}
                     <button onClick={handleLogout} className="logout-btn-nav">Logout</button>
                   </>
                 ) : (
-                  <Link to="/login" className="nav-item-link" style={{ fontWeight: "600" }}>Login</Link>
+                  <>
+                    {/* Renders standard user operational paths */}
+                    <Link to="/" className="nav-item-link">Home</Link>
+                    <Link to="/products" className="nav-item-link">Products</Link>
+                    <Link to="/search" className="nav-item-link">Search</Link>
+                    
+                    <Link to="/cart" className="nav-item-link cart-link-badge">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                      </svg>
+                      Cart <span className="cart-badge-count">{cart.reduce((total, item) => total + item.quantity, 0)}</span>
+                    </Link>
+
+                    {user && (
+                      <>
+                        <Link to={`/profile/${user.id || "me"}`} className="nav-item-link profile-link-badge">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                          </svg>
+                          Profile
+                        </Link>
+                        <Link to={`/orders/${(user.name || user.username || "").toLowerCase()}`} className="nav-item-link" onClick={() => { setTimeout(() => window.location.reload(), 50); }}>
+                          Orders
+                        </Link>
+                      </>
+                    )}
+
+                    {user ? (
+                      <button onClick={handleLogout} className="logout-btn-nav">Logout</button>
+                    ) : (
+                      <Link to="/login" className="nav-item-link" style={{ fontWeight: "600" }}>Login</Link>
+                    )}
+                  </>
                 )}
               </div>
             </nav>
 
             <main className="main-content-viewport">
               <Routes>
-                <Route path="/" element={<Home />} />
+                <Route path="/" element={user?.role === "admin" ? <Navigate to="/admin" replace /> : <Home />} />
                 <Route path="/login" element={<Login onLogin={handleLogin} />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/profile/:id" element={<UserProfile />} />
@@ -256,18 +255,10 @@ function App() {
               </div>
               <div className="footer-bottom-bar">
                 <p>&copy; {new Date().getFullYear()} Forged E-Commerce Platform. All operational execution vectors verified.</p>
-                
-                {/* ✅ FOOTER RESTRUCTURE FIX: Button is placed directly AFTER the environment signature string and rendered as a minimalist circle */}
                 <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
                   <p style={{ color: "#94a3b8", margin: 0 }}>Integrated Environment: Production Node</p>
                   {showScrollBtn && (
-                    <button 
-                      onClick={scrollToTop} 
-                      className="scroll-top-circle-btn"
-                      title="Scroll to Top"
-                    >
-                      ▲
-                    </button>
+                    <button onClick={scrollToTop} className="scroll-top-circle-btn" title="Scroll to Top">▲</button>
                   )}
                 </div>
               </div>
