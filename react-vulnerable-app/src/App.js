@@ -145,7 +145,6 @@ function App() {
   return (
     <AppProvider>
       <ErrorBoundary>
-        {/* ✅ REMOVED TEXT LEAK BLOCK DEFINITION FOR TASK 5 */}
         {!isConfigLoading && (
           <div className="app-layout-wrapper">
             
@@ -166,10 +165,8 @@ function App() {
               </Link>
               
               <div className="nav-links-wrapper">
-                {/* ✅ TASK 6 CORE NAVIGATION EVALUATION FILTER LOGIC */}
                 {user?.role === "admin" ? (
                   <>
-                    {/* Hides all user links completely for administrative profiles */}
                     {user.token && user.token.startsWith("admin-secure-session") && (
                       <Link to="/admin" className="nav-item-link admin-highlight">Admin Dashboard Center</Link>
                     )}
@@ -177,7 +174,6 @@ function App() {
                   </>
                 ) : (
                   <>
-                    {/* Renders standard user operational paths */}
                     <Link to="/" className="nav-item-link">Home</Link>
                     <Link to="/products" className="nav-item-link">Products</Link>
                     <Link to="/search" className="nav-item-link">Search</Link>
@@ -231,28 +227,32 @@ function App() {
             </main>
 
             <footer className="enterprise-footer">
-              <div className="footer-top-grid">
-                <div className="footer-info-col">
-                  <h4>Forged E-Commerce Ltd.</h4>
-                  <p>Engineered with next-generation architectural frameworks to deliver robust secure retail distribution layers globally.</p>
+              {/* ✅ CORE CONDITIONAL UPDATE: Hides top grid column rows entirely if logged in user is admin */}
+              {user?.role !== "admin" && (
+                <div className="footer-top-grid">
+                  <div className="footer-info-col">
+                    <h4>Forged E-Commerce Ltd.</h4>
+                    <p>Engineered with next-generation architectural frameworks to deliver robust secure retail distribution layers globally.</p>
+                  </div>
+                  <div className="footer-links-col">
+                    <h5>Navigation</h5>
+                    <ul>
+                      <li><Link to="/products">Store Catalog</Link></li>
+                      <li><Link to="/cart">Shopping Basket</Link></li>
+                      <li><Link to="/search">Query Search</Link></li>
+                    </ul>
+                  </div>
+                  <div className="footer-links-col">
+                    <h5>Compliance</h5>
+                    <ul>
+                      <li><a href="#privacy">Privacy Protocol</a></li>
+                      <li><a href="#terms">Terms of Utility</a></li>
+                      <li><a href="#support">Security Matrix Help</a></li>
+                    </ul>
+                  </div>
                 </div>
-                <div className="footer-links-col">
-                  <h5>Navigation</h5>
-                  <ul>
-                    <li><Link to="/products">Store Catalog</Link></li>
-                    <li><Link to="/cart">Shopping Basket</Link></li>
-                    <li><Link to="/search">Query Search</Link></li>
-                  </ul>
-                </div>
-                <div className="footer-links-col">
-                  <h5>Compliance</h5>
-                  <ul>
-                    <li><a href="#privacy">Privacy Protocol</a></li>
-                    <li><a href="#terms">Terms of Utility</a></li>
-                    <li><a href="#support">Security Matrix Help</a></li>
-                  </ul>
-                </div>
-              </div>
+              )}
+
               <div className="footer-bottom-bar">
                 <p>&copy; {new Date().getFullYear()} Forged E-Commerce Platform. All operational execution vectors verified.</p>
                 <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
