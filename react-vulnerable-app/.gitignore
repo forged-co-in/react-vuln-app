@@ -1,1 +1,4 @@
 firebase-service-account.json
+# Secure Local Environment Secrets 
+.env
+react-vulnerable-app/.env
