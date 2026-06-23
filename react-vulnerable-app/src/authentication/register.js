@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Swal from 'sweetalert2';
 import { useNavigate, Link } from 'react-router-dom';
 
 function Register() {
