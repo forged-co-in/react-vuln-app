@@ -21,7 +21,7 @@ function Register() {
 
   const isPasswordValid = Object.values(validationState).every(Boolean);
 
-  async function handleRegister(e) {
+ async function handleRegister(e) {
     e.preventDefault();
     setError("");
 
@@ -33,7 +33,8 @@ function Register() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3000/api/register", {
+      // ✅ FIX: Changed from http://localhost:3000/api/register to dynamic relative path
+      const response = await fetch("/api/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -60,7 +61,6 @@ function Register() {
       setLoading(false);
     }
   }
-
   return (
     <div className="register-panel" style={{ padding: "30px", maxWidth: "440px", margin: "50px auto", border: "1px solid #e9ecef", borderRadius: "8px", backgroundColor: "#ffffff", boxShadow: "0 8px 24px rgba(0,0,0,0.04)" }}>
       <h2 style={{ fontSize: "1.5rem", fontWeight: "700", marginBottom: "20px", textAlign: "center", color: "#0f172a", letterSpacing: "-0.02em" }}>Create Secure Account</h2>
