@@ -53,8 +53,16 @@ function Register() {
         throw new Error(data.error || "Registration request execution failure.");
       }
 
-      alert("User account generated successfully! Moving to Login page.");
-      navigate("/login");
+     Swal.fire({
+        title: 'Account Created!',
+        text: 'Your account has been generated successfully. Moving to Login page.',
+        icon: 'success',
+        confirmButtonColor: '#16a34a',
+        confirmButtonText: 'Proceed to Login'
+      }).then(() => {
+        // Redirects the user only after they click the "Proceed to Login" button
+        navigate("/login");
+      });
     } catch (err) {
       setError(err.message);
     } finally {
