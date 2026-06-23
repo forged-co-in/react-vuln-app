@@ -16,12 +16,11 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "server/server.js"
+      "dest": "/server/server.js"
     },
     {
       "src": "/static/(.*)",
-      "dest": "/static/$1",
-      "continue": true
+      "dest": "/static/$1"
     },
     {
       "src": "/(.*)",
